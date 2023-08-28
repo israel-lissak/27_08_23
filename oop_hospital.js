@@ -1,29 +1,41 @@
 "use strict";
 class Person {
-    constructor(firstName, lastName) {
+    constructor(firstName, lastName, age, address) {
         this.firstName = firstName;
         this.lastName = lastName;
+        this.age = age;
+        this.address = address;
     }
     details() {
         console.log(`name: ${this.firstName} ${this.lastName}`);
     }
 }
 class Patient extends Person {
-    constructor(firstName, lastName, patientId) {
-        super(firstName, lastName);
+    constructor(firstName, lastName, age, address, patientId, phoneNumber, emergencyContact, medicalHistory = []) {
+        super(firstName, lastName, age, address);
         this.patientId = patientId;
+        this.phoneNumber = phoneNumber;
+        this.emergencyContact = emergencyContact;
+        this.medicalHistory = medicalHistory;
     }
     details() {
         super.details();
-        console.log(`patient id: ${this.patientId}`);
+        console.log(`patient id: ${this.patientId} \nphone number: ${this.phoneNumber} \nemergency contact: ${this.emergencyContact} \nmedical history:`);
+        this.medicalHistory.forEach(appointment => {
+            console.log(`appointed doctor: ${appointment.doctor} \nappointment date: ${appointment.date} on ${appointment.time}`);
+        });
     }
     getId() {
         return this.patientId;
     }
+    updateMedicalHistory(lastAppointment) {
+        this.medicalHistory.push(lastAppointment);
+        console.log('medical history updated successfully');
+    }
 }
 class Doctor extends Person {
-    constructor(firstName, lastName, doctorId, specialization) {
-        super(firstName, lastName);
+    constructor(firstName, lastName, age, address, doctorId, specialization) {
+        super(firstName, lastName, age, address);
         this.doctorId = doctorId;
         this.specialization = specialization;
     }
@@ -99,35 +111,3 @@ class Hospital {
         });
     }
 }
-// Create instances of Doctor
-const doctor1 = new Doctor("John", "Doe", 1, "Cardiology");
-const doctor2 = new Doctor("Jane", "Smith", 2, "Pediatrics");
-// Create instances of Patient
-const patient1 = new Patient("Alice", "Johnson", 101);
-const patient2 = new Patient("Bob", "Williams", 102);
-// Create instances of Hospital
-const hospital = new Hospital("St. Mary's Hospital", [doctor1, doctor2], [patient1, patient2], []);
-// Add new patients and doctors to the hospital
-const newPatient = new Patient("Eve", "Brown", 103);
-hospital.addNewPatient(newPatient);
-const newDoctor = new Doctor("Michael", "Davis", 3, "Orthopedics");
-hospital.addNewDoctor(newDoctor);
-// Schedule appointments between patients and doctors
-const appointment1 = new Appointment(patient1, doctor1, "8/27/2023", "10:00 AM");
-const appointment2 = new Appointment(patient2, doctor2, "8/28/2023", "11:00 AM");
-const appointment3 = new Appointment(newPatient, newDoctor, "8/29/2023", "2:00 PM");
-hospital.addNewAppointment(appointment1);
-hospital.addNewAppointment(appointment2);
-hospital.addNewAppointment(appointment3);
-// Display appointment details
-console.log("All Appointments:");
-hospital.appointmentsDetails();
-// Display appointment details for a specific doctor
-console.log("\nAppointments for Doctor with ID 1:");
-hospital.appointmentsDetailsByDoctorId(1);
-// Display appointment details for a specific patient
-console.log("\nAppointments for Patient with ID 101:");
-hospital.appointmentsDetailsByPatientId(101);
-// Display appointment details for today
-console.log("\nAppointments for Today:");
-hospital.appointmentsDetailsToday();
