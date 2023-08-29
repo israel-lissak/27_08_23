@@ -80,12 +80,14 @@ class Doctor extends MedicalStaff {
     private doctorId
     specialization
     availability 
+    ageOfPatient
 
-    constructor(firstName: string, lastName: string, age: number, address: string, staffId: number, position: string, department: string ,doctorId: number, specialization: string, availability: {date: string, time: string}[]) {
+    constructor(firstName: string, lastName: string, age: number, address: string, staffId: number, position: string, department: string ,doctorId: number, specialization: string, availability: {date: string, time: string}[], ageOfPatient: '0-18'|'18-40'|'40-99'|'all') {
         super(firstName, lastName, age, address, staffId, position, department);
         this.doctorId = doctorId;
         this.specialization = specialization;
         this.availability = availability;
+        this.ageOfPatient = ageOfPatient;
     }
 
     details(): void {
@@ -204,17 +206,35 @@ class Hospital  {
         this.medicalRecord = medicalRecord;
     }
 
-    addNewPatient(newPatient: Patient) {
+    addNewPatient(firstName: string, lastName: string, age: number, address: string, patientId: number, phoneNumber: number, emergencyContact: number, medicalHistory: Appointment[]): void {
+        const newPatient = new Patient(
+            firstName, lastName, age, address, patientId, phoneNumber, emergencyContact, medicalHistory
+        );
         this.patients.push(newPatient);
         console.log('patient added successfully');
     }
-    
-    addNewDoctor(newDoctor: Doctor) {
+
+    addNewDoctor(firstName: string, lastName: string, age: number, address: string, staffId: number, position: string, department: string, doctorId: number, specialization: string, availability: { date: string, time: string }[], ageOfPatient: '0-18'|'18-40'|'40-99'|'all'): void {
+        const newDoctor = new Doctor(firstName, lastName, age, address, staffId, position, department, doctorId, specialization, availability, ageOfPatient);
         this.doctors.push(newDoctor);
         console.log('doctor added successfully');
     }
     
-    addNewAppointment(newAppointment: Appointment) {
+    addNewAppointment(patient: Patient, doctor: Doctor, date: string, time: string, status: 'planned'|'completed'|'cancelled'): void {
+        doctor.getScheduleByDay(date).forEach(appointment => {
+            if (appointment.time === time) {
+                console.log(`doctor ${doctor.firstName} ${doctor1.lastName} is not avilable in ${time}`);
+                return
+            }
+        })
+        if (doctor.ageOfPatient === '0-18' && patient.age > 18 ||
+            doctor.ageOfPatient === '18-40' && patient.age < 18 ||
+            doctor.ageOfPatient === '18-40' && patient.age > 40 ||
+            doctor.ageOfPatient === '40-99' && patient.age < 40) {
+            console.log(`doctor ${doctor.firstName} ${doctor1.lastName} treats only patients at the age of ${doctor.ageOfPatient}`);
+            return
+        }
+        const newAppointment = new Appointment(patient, doctor, date, time, status);
         this.appointments.push(newAppointment);
         console.log('appointment added successfully');
     }
@@ -288,8 +308,8 @@ class Hospital  {
 
 
 // Create instances of Doctor
-const doctor1 = new Doctor("John", "Doe", 35, "123 Main St",1001, 'doctor', 'Cardiology', 1, "Cardiology", []);
-const doctor2 = new Doctor("Jane", "Smith", 40, "456 Elm St", 1002,'doctor','Pediatrics', 2, "Pediatrics",[]);
+const doctor1 = new Doctor("John", "Doe", 35, "123 Main St",1001, 'doctor', 'Cardiology', 1, "Cardiology", [], '0-18');
+const doctor2 = new Doctor("Jane", "Smith", 40, "456 Elm St", 1002,'doctor','Pediatrics', 2, "Pediatrics",[], 'all');
 
 // Create instances of Patient
 const patient1 = new Patient("Alice", "Johnson", 28, "789 Oak St", 101, 5551234, 555-5678, []);
@@ -299,21 +319,15 @@ const patient2 = new Patient("Bob", "Williams", 45, "321 Pine St", 102, 5555678,
 const hospital = new Hospital("St. Mary's Hospital", [doctor1, doctor2], [patient1, patient2], [], []);
 
 // Add new patients and doctors to the hospital
-const newPatient = new Patient("Eve", "Brown", 30, "654 Maple St", 103, 5551111, 5552222, []);
-hospital.addNewPatient(newPatient);
+hospital.addNewPatient("Eve", "Brown", 30, "654 Maple St", 103, 5551111, 5552222, []);
 console.log('1');
 
-const newDoctor = new Doctor("Michael", "Davis", 50, "987 Birch St", 1003, 'doctor', 'Orthopedics', 3, "Orthopedics", []);
-hospital.addNewDoctor(newDoctor);
+hospital.addNewDoctor("Michael", "Davis", 50, "987 Birch St", 1003, 'doctor', 'Orthopedics', 3, "Orthopedics", [], '18-40');
 console.log('2');
 
 // Schedule appointments between patients and doctors
-const appointment1 = new Appointment(patient1, doctor1, "2023-08-28", "10:00 AM", 'planned');
-const appointment2 = new Appointment(patient2, doctor2, "8/28/2023", "11:00 AM", 'completed');
-const appointment3 = new Appointment(newPatient, newDoctor, "2023-08-29", "2:00 PM", 'cancelled');
-hospital.addNewAppointment(appointment1);
-hospital.addNewAppointment(appointment2);
-hospital.addNewAppointment(appointment3);
+hospital.addNewAppointment(patient1, doctor1, "2023-08-28", "10:00 AM", 'planned');
+hospital.addNewAppointment(patient2, doctor1, "8/28/2023", "11:00 AM", 'completed');
 console.log('3');
 
 // Display appointment details
@@ -336,15 +350,6 @@ console.log("\nAppointments for Today:");
 hospital.appointmentsDetailsToday();
 console.log('7');
 
-
-patient1.updateMedicalHistory(appointment1);
-patient1.updateMedicalHistory(appointment2);
-patient1.details();
-
-console.log(appointment1.status);
-appointment1.changeStatus('cancelled');
-console.log(appointment1.status);
-console.log(appointment1.doctor.availability);
 
 
 
